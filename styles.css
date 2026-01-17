@@ -127,6 +127,54 @@ label {
   color: var(--muted);
 }
 
+label .label-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+label .info-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(47, 111, 164, 0.15);
+  color: var(--sea);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: help;
+  position: relative;
+}
+
+label .info-tip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  top: 120%;
+  min-width: 220px;
+  max-width: 280px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(15, 32, 58, 0.15);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+
+label .info-tip:hover::after,
+label .info-tip:focus::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 input {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 14px;

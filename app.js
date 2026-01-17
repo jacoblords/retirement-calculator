@@ -10,6 +10,7 @@ const inputIds = [
   "inflation",
   "taxRate",
   "retirementSpend",
+  "retirementCOLA",
   "socialSecurityStartAge",
   "socialSecurityBenefit",
 ];
@@ -25,6 +26,7 @@ const breakdownBody = document.getElementById("breakdownBody");
 const toggleTable = document.getElementById("toggleTable");
 
 let showAllRows = false;
+const storageKey = "retirementCalculator.inputs";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -69,6 +71,7 @@ function getInputs() {
     inflation: toNumber(elements.inflation.value) / 100,
     taxRate: toNumber(elements.taxRate.value) / 100,
     retirementSpend: toNumber(elements.retirementSpend.value),
+    retirementCOLA: toNumber(elements.retirementCOLA.value) / 100,
     socialSecurityStartAge: toNumberNullable(
       elements.socialSecurityStartAge.value
     ),
@@ -92,6 +95,7 @@ function calculateProjection(settings) {
     const yearsSinceStart = Math.max(0, age - settings.currentAge);
     const spendInflated =
       settings.retirementSpend *
+      Math.pow(1 + settings.retirementCOLA, yearsSinceRetirement) *
       Math.pow(1 + settings.inflation, yearsSinceRetirement);
     const socialSecurityIncome =
       age >= settings.socialSecurityStartAge
@@ -218,6 +222,11 @@ function buildCharts(result) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            bottom: 16,
+          },
+        },
         animation: {
           duration: 850,
           easing: "easeOutQuart",
@@ -225,6 +234,9 @@ function buildCharts(result) {
         plugins: {
           legend: {
             position: "bottom",
+            labels: {
+              padding: 16,
+            },
           },
           tooltip: {
             callbacks: {
@@ -279,6 +291,11 @@ function buildCharts(result) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            bottom: 16,
+          },
+        },
         animation: {
           duration: 850,
           easing: "easeOutQuart",
@@ -286,6 +303,9 @@ function buildCharts(result) {
         plugins: {
           legend: {
             position: "bottom",
+            labels: {
+              padding: 16,
+            },
           },
           tooltip: {
             callbacks: {
@@ -337,6 +357,32 @@ function render() {
   buildCharts(result);
 }
 
+function saveInputs() {
+  const payload = {};
+  inputIds.forEach((id) => {
+    payload[id] = elements[id].value;
+  });
+  localStorage.setItem(storageKey, JSON.stringify(payload));
+}
+
+function loadInputs() {
+  const stored = localStorage.getItem(storageKey);
+  if (!stored) {
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(stored);
+    inputIds.forEach((id) => {
+      if (typeof payload[id] === "string") {
+        elements[id].value = payload[id];
+      }
+    });
+  } catch {
+    localStorage.removeItem(storageKey);
+  }
+}
+
 function clampOnBlur() {
   const settings = getInputs();
 
@@ -368,7 +414,10 @@ function clampOnBlur() {
 }
 
 inputIds.forEach((id) => {
-  elements[id].addEventListener("input", render);
+  elements[id].addEventListener("input", () => {
+    saveInputs();
+    render();
+  });
   if (
     id === "currentAge" ||
     id === "retirementAge" ||
@@ -377,6 +426,7 @@ inputIds.forEach((id) => {
   ) {
     elements[id].addEventListener("blur", () => {
       clampOnBlur();
+      saveInputs();
       render();
     });
   }
@@ -387,4 +437,5 @@ toggleTable.addEventListener("click", () => {
   render();
 });
 
+loadInputs();
 render();

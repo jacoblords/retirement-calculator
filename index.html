@@ -100,6 +100,28 @@
               Retirement spending (today $)
               <input type="text" inputmode="decimal" id="retirementSpend" value="52000" min="0" step="500" />
             </label>
+            <label>
+              <span class="label-head">
+                Retirement spending change (%)
+                <span
+                  class="info-tip"
+                  data-tooltip="Adjusts retirement spending each year before inflation. Many retirees spend less over time. Use 0% to keep spending flat in today’s dollars, or a negative value to model spending less. See reference note below."
+                  aria-label="About retirement spending change"
+                  role="note"
+                >
+                  i
+                </span>
+              </span>
+              <input
+                type="text"
+                inputmode="decimal"
+                id="retirementCOLA"
+                value="-1"
+                min="-5"
+                max="10"
+                step="0.1"
+              />
+            </label>
           </div>
         </div>
         <div class="form-section">
@@ -160,6 +182,15 @@
             <tbody id="breakdownBody"></tbody>
           </table>
         </div>
+      </section>
+      <section class="panel references">
+        <h2>References</h2>
+        <p class="note">
+          Retirement spending patterns:
+          <a href="https://www.financialplanningassociation.org/sites/default/files/2020-09/MAY14%20JFP%20Blanchett_0.pdf" target="_blank" rel="noopener">
+            Blanchett, JFP (2014)
+          </a>
+        </p>
       </section>
     </main>
 
