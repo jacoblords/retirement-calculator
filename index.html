@@ -43,15 +43,15 @@
           <div class="input-grid">
             <label>
               Current age
-              <input type="number" id="currentAge" value="35" min="18" max="70" />
+              <input type="text" inputmode="decimal" id="currentAge" value="35" min="18" max="70" />
             </label>
             <label>
               Retirement age
-              <input type="number" id="retirementAge" value="67" min="30" max="80" />
+              <input type="text" inputmode="decimal" id="retirementAge" value="67" min="30" max="80" />
             </label>
             <label>
               Life expectancy
-              <input type="number" id="lifeExpectancy" value="95" min="60" max="110" />
+              <input type="text" inputmode="decimal" id="lifeExpectancy" value="95" min="60" max="110" />
             </label>
           </div>
         </div>
@@ -60,15 +60,15 @@
           <div class="input-grid">
             <label>
               Current savings ($)
-              <input type="number" id="currentSavings" value="120000" min="0" step="1000" />
+              <input type="text" inputmode="decimal" id="currentSavings" value="120000" min="0" step="1000" />
             </label>
             <label>
               Annual contribution ($)
-              <input type="number" id="annualContribution" value="18000" min="0" step="500" />
+              <input type="text" inputmode="decimal" id="annualContribution" value="18000" min="0" step="500" />
             </label>
             <label>
               Contribution growth (%/yr)
-              <input type="number" id="contributionGrowth" value="2" min="0" max="15" step="0.1" />
+              <input type="text" inputmode="decimal" id="contributionGrowth" value="2" min="0" max="15" step="0.1" />
             </label>
           </div>
         </div>
@@ -77,15 +77,15 @@
           <div class="input-grid">
             <label>
               Pre-retirement return (%/yr)
-              <input type="number" id="preReturn" value="6.5" min="0" max="15" step="0.1" />
+              <input type="text" inputmode="decimal" id="preReturn" value="6.5" min="0" max="15" step="0.1" />
             </label>
             <label>
               Post-retirement return (%/yr)
-              <input type="number" id="postReturn" value="4.5" min="-2" max="12" step="0.1" />
+              <input type="text" inputmode="decimal" id="postReturn" value="4.5" min="-2" max="12" step="0.1" />
             </label>
             <label>
               Inflation (%/yr)
-              <input type="number" id="inflation" value="2.4" min="0" max="10" step="0.1" />
+              <input type="text" inputmode="decimal" id="inflation" value="2.4" min="0" max="10" step="0.1" />
             </label>
           </div>
         </div>
@@ -94,17 +94,30 @@
           <div class="input-grid">
             <label>
               Tax rate on withdrawals (%)
-              <input type="number" id="taxRate" value="18" min="0" max="50" step="0.1" />
+              <input type="text" inputmode="decimal" id="taxRate" value="18" min="0" max="50" step="0.1" />
             </label>
             <label>
               Retirement spending (today $)
-              <input type="number" id="retirementSpend" value="52000" min="0" step="500" />
+              <input type="text" inputmode="decimal" id="retirementSpend" value="52000" min="0" step="500" />
+            </label>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Social Security</h3>
+          <div class="input-grid">
+            <label>
+              Start age
+              <input type="text" inputmode="decimal" id="socialSecurityStartAge" value="67" min="62" max="85" />
+            </label>
+            <label>
+              Annual benefit (today $)
+              <input type="text" inputmode="decimal" id="socialSecurityBenefit" value="24000" min="0" step="500" />
             </label>
           </div>
         </div>
         <p class="note">
           Assumes taxes apply to withdrawals only and contributions occur at the
-          start of each year.
+          start of each year. Social Security benefits grow with inflation.
         </p>
         </section>
 
@@ -137,6 +150,7 @@
                 <th>Start balance</th>
                 <th>Contribution</th>
                 <th>Withdrawal</th>
+                <th>Social Security</th>
                 <th>Growth</th>
                 <th>Tax</th>
                 <th>End balance</th>

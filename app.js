@@ -10,6 +10,8 @@ const inputIds = [
   "inflation",
   "taxRate",
   "retirementSpend",
+  "socialSecurityStartAge",
+  "socialSecurityBenefit",
 ];
 
 const elements = Object.fromEntries(
@@ -38,16 +40,27 @@ const percent = new Intl.NumberFormat("en-US", {
 let balanceChart;
 let cashflowChart;
 
-function toNumber(value) {
+function toNumber(value, fallback = 0) {
+  if (value === "") {
+    return fallback;
+  }
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toNumberNullable(value) {
+  if (value === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function getInputs() {
   return {
-    currentAge: toNumber(elements.currentAge.value),
-    retirementAge: toNumber(elements.retirementAge.value),
-    lifeExpectancy: toNumber(elements.lifeExpectancy.value),
+    currentAge: toNumberNullable(elements.currentAge.value),
+    retirementAge: toNumberNullable(elements.retirementAge.value),
+    lifeExpectancy: toNumberNullable(elements.lifeExpectancy.value),
     currentSavings: toNumber(elements.currentSavings.value),
     annualContribution: toNumber(elements.annualContribution.value),
     contributionGrowth: toNumber(elements.contributionGrowth.value) / 100,
@@ -56,6 +69,10 @@ function getInputs() {
     inflation: toNumber(elements.inflation.value) / 100,
     taxRate: toNumber(elements.taxRate.value) / 100,
     retirementSpend: toNumber(elements.retirementSpend.value),
+    socialSecurityStartAge: toNumberNullable(
+      elements.socialSecurityStartAge.value
+    ),
+    socialSecurityBenefit: toNumber(elements.socialSecurityBenefit.value),
   };
 }
 
@@ -72,13 +89,20 @@ function calculateProjection(settings) {
     const isRetired = age >= settings.retirementAge;
     const inflationFactor = Math.pow(1 + settings.inflation, i);
     const yearsSinceRetirement = Math.max(0, age - settings.retirementAge);
+    const yearsSinceStart = Math.max(0, age - settings.currentAge);
     const spendInflated =
       settings.retirementSpend *
       Math.pow(1 + settings.inflation, yearsSinceRetirement);
+    const socialSecurityIncome =
+      age >= settings.socialSecurityStartAge
+        ? settings.socialSecurityBenefit *
+          Math.pow(1 + settings.inflation, yearsSinceStart)
+        : 0;
+    const netSpendingNeed = Math.max(spendInflated - socialSecurityIncome, 0);
     const grossWithdrawal = isRetired
-      ? spendInflated / Math.max(1 - settings.taxRate, 0.0001)
+      ? netSpendingNeed / Math.max(1 - settings.taxRate, 0.0001)
       : 0;
-    const tax = isRetired ? grossWithdrawal - spendInflated : 0;
+    const tax = isRetired ? grossWithdrawal - netSpendingNeed : 0;
 
     const contribution = isRetired
       ? 0
@@ -106,6 +130,7 @@ function calculateProjection(settings) {
       startBalance,
       contribution,
       withdrawal: grossWithdrawal,
+      socialSecurity: socialSecurityIncome,
       growth,
       tax,
       endBalance,
@@ -134,6 +159,7 @@ function buildTableRows(rows) {
           <td>${currency.format(row.startBalance)}</td>
           <td>${currency.format(row.contribution)}</td>
           <td>${currency.format(row.withdrawal)}</td>
+          <td>${currency.format(row.socialSecurity)}</td>
           <td>${currency.format(row.growth)}</td>
           <td>${currency.format(row.tax)}</td>
           <td>${currency.format(row.endBalance)}</td>
@@ -162,6 +188,7 @@ function buildCharts(result) {
   const real = result.data.map((row) => row.realEndBalance);
   const contributions = result.data.map((row) => row.contribution);
   const withdrawals = result.data.map((row) => -row.withdrawal);
+  const socialSecurity = result.data.map((row) => row.socialSecurity);
 
   if (!balanceChart) {
     const ctx = document.getElementById("balanceChart");
@@ -241,6 +268,12 @@ function buildCharts(result) {
             backgroundColor: "rgba(240, 138, 75, 0.7)",
             borderRadius: 8,
           },
+          {
+            label: "Social Security",
+            data: socialSecurity,
+            backgroundColor: "rgba(74, 127, 191, 0.55)",
+            borderRadius: 8,
+          },
         ],
       },
       options: {
@@ -274,6 +307,7 @@ function buildCharts(result) {
     cashflowChart.data.labels = labels;
     cashflowChart.data.datasets[0].data = contributions;
     cashflowChart.data.datasets[1].data = withdrawals;
+    cashflowChart.data.datasets[2].data = socialSecurity;
     cashflowChart.update();
   }
 }
@@ -281,24 +315,71 @@ function buildCharts(result) {
 function render() {
   const settings = getInputs();
 
-  if (settings.retirementAge <= settings.currentAge) {
-    settings.retirementAge = settings.currentAge + 1;
-    elements.retirementAge.value = settings.retirementAge;
+  if (
+    settings.currentAge === null ||
+    settings.retirementAge === null ||
+    settings.lifeExpectancy === null
+  ) {
+    return;
   }
 
-  if (settings.lifeExpectancy <= settings.retirementAge) {
-    settings.lifeExpectancy = settings.retirementAge + 1;
-    elements.lifeExpectancy.value = settings.lifeExpectancy;
-  }
+  const ssStartAge =
+    settings.socialSecurityStartAge === null
+      ? settings.retirementAge
+      : settings.socialSecurityStartAge;
 
-  const result = calculateProjection(settings);
+  const result = calculateProjection({
+    ...settings,
+    socialSecurityStartAge: ssStartAge,
+  });
   renderSummary(result);
   renderTable(result.data);
   buildCharts(result);
 }
 
+function clampOnBlur() {
+  const settings = getInputs();
+
+  if (
+    settings.currentAge === null ||
+    settings.retirementAge === null ||
+    settings.lifeExpectancy === null
+  ) {
+    return;
+  }
+
+  if (settings.retirementAge <= settings.currentAge) {
+    elements.retirementAge.value = String(settings.currentAge + 1);
+  }
+
+  if (settings.lifeExpectancy <= settings.retirementAge) {
+    elements.lifeExpectancy.value = String(settings.retirementAge + 1);
+  }
+
+  if (settings.socialSecurityStartAge !== null) {
+    if (settings.socialSecurityStartAge < settings.currentAge) {
+      elements.socialSecurityStartAge.value = String(settings.currentAge);
+    }
+
+    if (settings.socialSecurityStartAge > settings.lifeExpectancy) {
+      elements.socialSecurityStartAge.value = String(settings.lifeExpectancy);
+    }
+  }
+}
+
 inputIds.forEach((id) => {
   elements[id].addEventListener("input", render);
+  if (
+    id === "currentAge" ||
+    id === "retirementAge" ||
+    id === "lifeExpectancy" ||
+    id === "socialSecurityStartAge"
+  ) {
+    elements[id].addEventListener("blur", () => {
+      clampOnBlur();
+      render();
+    });
+  }
 });
 
 toggleTable.addEventListener("click", () => {
