@@ -1,0 +1,254 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600&display=swap");
+
+:root {
+  color-scheme: only light;
+  --bg: #eef3f9;
+  --bg-alt: #f9fbff;
+  --ink: #172332;
+  --muted: #4b5a70;
+  --accent: #4a7fbf;
+  --accent-dark: #2f5f99;
+  --sea: #2f6fa4;
+  --sea-soft: rgba(47, 111, 164, 0.12);
+  --panel: rgba(255, 255, 255, 0.9);
+  --shadow: 0 24px 48px rgba(15, 32, 58, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Source Sans 3", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at top left, #d6e6f7 0%, transparent 55%),
+    radial-gradient(circle at 70% 20%, #e5f1ff 0%, transparent 40%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.6), transparent);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  padding: 3.5rem 6vw 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--accent-dark);
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 3.2vw, 3.6rem);
+  margin: 0 0 0.5rem;
+  line-height: 1.05;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 1.05rem;
+  max-width: 32rem;
+}
+
+.hero-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  background: var(--panel);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  min-width: min(420px, 100%);
+}
+
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.metric strong {
+  font-size: 1.6rem;
+}
+
+.grid {
+  display: grid;
+  gap: 2rem;
+  padding: 0 6vw 4rem;
+}
+
+.top-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 28px;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+h2 {
+  font-size: 1.6rem;
+  margin-top: 0;
+}
+
+.planner .input-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+input {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 0.65rem 0.85rem;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--bg-alt);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--sea);
+  transform: translateY(-1px);
+}
+
+.note {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.form-section h3 {
+  margin: 0 0 0.8rem;
+  font-size: 1.1rem;
+  color: var(--sea);
+  letter-spacing: 0.02em;
+}
+
+.chart-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+.chart-card {
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  min-height: 260px;
+  height: clamp(260px, 28vw, 360px);
+}
+
+.chart-card h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.chart-card canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+button:hover {
+  background: var(--accent-dark);
+  transform: translateY(-1px);
+}
+
+.table-wrap {
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  padding: 0.75rem 0.9rem;
+  text-align: right;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+th:first-child,
+td:first-child,
+th:nth-child(2),
+td:nth-child(2) {
+  text-align: left;
+}
+
+tr:nth-child(even) {
+  background: rgba(23, 109, 129, 0.05);
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding: 2.5rem 6vw 1.5rem;
+  }
+
+  .panel {
+    padding: 1.5rem;
+  }
+
+  .top-grid {
+    grid-template-columns: 1fr;
+  }
+}

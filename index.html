@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Retirement Pathfinder</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Retirement Pathfinder</p>
+        <h1>Model your future with clarity.</h1>
+        <p class="subtitle">
+          Explore how savings, inflation, taxes, and market returns shape your
+          retirement runway. Adjust any input and watch the story change.
+        </p>
+      </div>
+      <div class="hero-card">
+        <div class="metric">
+          <span>Balance at retirement</span>
+          <strong id="balanceAtRetirement">—</strong>
+        </div>
+        <div class="metric">
+          <span>Years funded</span>
+          <strong id="yearsFunded">—</strong>
+        </div>
+        <div class="metric">
+          <span>Ending balance</span>
+          <strong id="endingBalance">—</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <div class="top-grid">
+        <section class="panel planner">
+        <h2>Your plan</h2>
+        <div class="form-section">
+          <h3>Timeline</h3>
+          <div class="input-grid">
+            <label>
+              Current age
+              <input type="number" id="currentAge" value="35" min="18" max="70" />
+            </label>
+            <label>
+              Retirement age
+              <input type="number" id="retirementAge" value="67" min="30" max="80" />
+            </label>
+            <label>
+              Life expectancy
+              <input type="number" id="lifeExpectancy" value="95" min="60" max="110" />
+            </label>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Savings & contributions</h3>
+          <div class="input-grid">
+            <label>
+              Current savings ($)
+              <input type="number" id="currentSavings" value="120000" min="0" step="1000" />
+            </label>
+            <label>
+              Annual contribution ($)
+              <input type="number" id="annualContribution" value="18000" min="0" step="500" />
+            </label>
+            <label>
+              Contribution growth (%/yr)
+              <input type="number" id="contributionGrowth" value="2" min="0" max="15" step="0.1" />
+            </label>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Markets & inflation</h3>
+          <div class="input-grid">
+            <label>
+              Pre-retirement return (%/yr)
+              <input type="number" id="preReturn" value="6.5" min="0" max="15" step="0.1" />
+            </label>
+            <label>
+              Post-retirement return (%/yr)
+              <input type="number" id="postReturn" value="4.5" min="-2" max="12" step="0.1" />
+            </label>
+            <label>
+              Inflation (%/yr)
+              <input type="number" id="inflation" value="2.4" min="0" max="10" step="0.1" />
+            </label>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3>Retirement spending & taxes</h3>
+          <div class="input-grid">
+            <label>
+              Tax rate on withdrawals (%)
+              <input type="number" id="taxRate" value="18" min="0" max="50" step="0.1" />
+            </label>
+            <label>
+              Retirement spending (today $)
+              <input type="number" id="retirementSpend" value="52000" min="0" step="500" />
+            </label>
+          </div>
+        </div>
+        <p class="note">
+          Assumes taxes apply to withdrawals only and contributions occur at the
+          start of each year.
+        </p>
+        </section>
+
+        <section class="panel charts">
+        <h2>Outlook</h2>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <h3>Portfolio Balance</h3>
+            <canvas id="balanceChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Cash Flow</h3>
+            <canvas id="cashflowChart"></canvas>
+          </div>
+        </div>
+        </section>
+      </div>
+
+      <section class="panel table">
+        <div class="table-head">
+          <h2>Year-by-year breakdown</h2>
+          <button id="toggleTable">Show all years</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Age</th>
+                <th>Start balance</th>
+                <th>Contribution</th>
+                <th>Withdrawal</th>
+                <th>Growth</th>
+                <th>Tax</th>
+                <th>End balance</th>
+                <th>Real end balance</th>
+              </tr>
+            </thead>
+            <tbody id="breakdownBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
