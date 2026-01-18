@@ -34,6 +34,7 @@ let showAllRows = false;
 let summaryMode = "nominal";
 const storageKey = "retirementCalculator.inputs";
 const summaryKey = "retirementCalculator.summaryMode";
+const tableKey = "retirementCalculator.showAllYears";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -451,6 +452,11 @@ function loadSummaryMode() {
   });
 }
 
+function loadTableState() {
+  const stored = localStorage.getItem(tableKey);
+  showAllRows = stored === "true";
+}
+
 function clampOnBlur() {
   const settings = getInputs();
 
@@ -502,6 +508,7 @@ inputIds.forEach((id) => {
 
 toggleTable.addEventListener("click", () => {
   showAllRows = !showAllRows;
+  localStorage.setItem(tableKey, String(showAllRows));
   render();
 });
 
@@ -518,4 +525,5 @@ summaryToggleButtons.forEach((button) => {
 
 loadInputs();
 loadSummaryMode();
+loadTableState();
 render();
