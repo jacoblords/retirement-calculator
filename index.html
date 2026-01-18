@@ -19,8 +19,19 @@
         </p>
       </div>
       <div class="hero-card">
+        <div class="card-head">
+          <span>Summary</span>
+          <div class="toggle-group" role="group" aria-label="Summary units">
+            <button class="toggle-button is-active" data-summary="nominal" type="button">
+              Nominal
+            </button>
+            <button class="toggle-button" data-summary="real" type="button">
+              Today’s $
+            </button>
+          </div>
+        </div>
         <div class="metric">
-          <span>Balance at retirement</span>
+          <span id="balanceAtRetirementLabel">Balance at retirement</span>
           <strong id="balanceAtRetirement">—</strong>
         </div>
         <div class="metric">
@@ -28,7 +39,7 @@
           <strong id="yearsFunded">—</strong>
         </div>
         <div class="metric">
-          <span>Ending balance</span>
+          <span id="endingBalanceLabel">Ending balance</span>
           <strong id="endingBalance">—</strong>
         </div>
       </div>
@@ -137,10 +148,6 @@
             </label>
           </div>
         </div>
-        <p class="note">
-          Assumes taxes apply to withdrawals only and contributions occur at the
-          start of each year. Social Security benefits grow with inflation.
-        </p>
         </section>
 
         <section class="panel charts">

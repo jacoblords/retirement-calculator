@@ -20,13 +20,20 @@ const elements = Object.fromEntries(
 );
 
 const balanceAtRetirementEl = document.getElementById("balanceAtRetirement");
+const balanceAtRetirementLabelEl = document.getElementById(
+  "balanceAtRetirementLabel"
+);
 const yearsFundedEl = document.getElementById("yearsFunded");
 const endingBalanceEl = document.getElementById("endingBalance");
+const endingBalanceLabelEl = document.getElementById("endingBalanceLabel");
 const breakdownBody = document.getElementById("breakdownBody");
 const toggleTable = document.getElementById("toggleTable");
+const summaryToggleButtons = document.querySelectorAll("[data-summary]");
 
 let showAllRows = false;
+let summaryMode = "nominal";
 const storageKey = "retirementCalculator.inputs";
+const summaryKey = "retirementCalculator.summaryMode";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -159,8 +166,20 @@ function calculateProjection(settings) {
   return {
     data,
     balanceAtRetirement: balanceAtRetirement ?? settings.currentSavings,
+    realBalanceAtRetirement:
+      (balanceAtRetirement ?? settings.currentSavings) /
+      Math.pow(
+        1 + settings.inflation,
+        Math.max(0, settings.retirementAge - settings.currentAge)
+      ),
     yearsFunded,
     endingBalance: balance,
+    realEndingBalance:
+      balance /
+      Math.pow(
+        1 + settings.inflation,
+        Math.max(0, settings.lifeExpectancy - settings.currentAge)
+      ),
   };
 }
 
@@ -192,9 +211,27 @@ function renderTable(data) {
 }
 
 function renderSummary(result) {
-  balanceAtRetirementEl.textContent = currency.format(result.balanceAtRetirement);
-  yearsFundedEl.textContent = `${result.yearsFunded} years`;
-  endingBalanceEl.textContent = currency.format(result.endingBalance);
+  const showReal = summaryMode === "real";
+  balanceAtRetirementEl.textContent = currency.format(
+    showReal ? result.realBalanceAtRetirement : result.balanceAtRetirement
+  );
+  const retirementYears =
+    result.data[result.data.length - 1].age -
+    result.data.find((row) => row.isRetired)?.age +
+    1;
+  yearsFundedEl.textContent =
+    result.yearsFunded >= retirementYears
+      ? "Fully funded"
+      : `${result.yearsFunded} years`;
+  endingBalanceEl.textContent = currency.format(
+    showReal ? result.realEndingBalance : result.endingBalance
+  );
+  balanceAtRetirementLabelEl.textContent = showReal
+    ? "Balance at retirement (today)"
+    : "Balance at retirement";
+  endingBalanceLabelEl.textContent = showReal
+    ? "Ending balance (today)"
+    : "Ending balance";
 }
 
 function buildCharts(result) {
@@ -215,16 +252,16 @@ function buildCharts(result) {
           {
             label: "Nominal balance",
             data: nominal,
-            borderColor: "#176d81",
-            backgroundColor: "rgba(23, 109, 129, 0.2)",
+            borderColor: "#1b6ca8",
+            backgroundColor: "rgba(27, 108, 168, 0.2)",
             tension: 0.35,
             fill: true,
           },
           {
             label: "Real balance",
             data: real,
-            borderColor: "#f08a4b",
-            backgroundColor: "rgba(240, 138, 75, 0.2)",
+            borderColor: "#d98324",
+            backgroundColor: "rgba(217, 131, 36, 0.2)",
             tension: 0.35,
             fill: true,
           },
@@ -258,6 +295,7 @@ function buildCharts(result) {
         },
         scales: {
           y: {
+            beginAtZero: true,
             ticks: {
               callback: (value) => currency.format(value),
             },
@@ -282,19 +320,19 @@ function buildCharts(result) {
           {
             label: "Contributions",
             data: contributions,
-            backgroundColor: "rgba(23, 109, 129, 0.6)",
+            backgroundColor: "rgba(0, 126, 105, 0.6)",
             borderRadius: 8,
           },
           {
             label: "Withdrawals",
             data: withdrawals,
-            backgroundColor: "rgba(240, 138, 75, 0.7)",
+            backgroundColor: "rgba(213, 94, 0, 0.7)",
             borderRadius: 8,
           },
           {
             label: "Social Security",
             data: socialSecurity,
-            backgroundColor: "rgba(74, 127, 191, 0.55)",
+            backgroundColor: "rgba(86, 180, 233, 0.65)",
             borderRadius: 8,
           },
         ],
@@ -327,6 +365,7 @@ function buildCharts(result) {
         },
         scales: {
           y: {
+            beginAtZero: true,
             ticks: {
               callback: (value) => currency.format(value),
             },
@@ -394,6 +433,17 @@ function loadInputs() {
   }
 }
 
+function loadSummaryMode() {
+  const stored = localStorage.getItem(summaryKey);
+  if (stored !== "nominal" && stored !== "real") {
+    return;
+  }
+  summaryMode = stored;
+  summaryToggleButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.summary === stored);
+  });
+}
+
 function clampOnBlur() {
   const settings = getInputs();
 
@@ -448,5 +498,17 @@ toggleTable.addEventListener("click", () => {
   render();
 });
 
+summaryToggleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    summaryMode = button.dataset.summary;
+    summaryToggleButtons.forEach((btn) =>
+      btn.classList.toggle("is-active", btn === button)
+    );
+    localStorage.setItem(summaryKey, summaryMode);
+    render();
+  });
+});
+
 loadInputs();
+loadSummaryMode();
 render();
