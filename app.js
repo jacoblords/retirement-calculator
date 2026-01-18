@@ -111,18 +111,23 @@ function calculateProjection(settings) {
       isRetired && i === 0 ? yearsSinceRetirement + yearFraction : yearsSinceRetirement;
     const spendInflated =
       settings.retirementSpend *
-      Math.pow(1 + settings.retirementCOLA, retirementTime) *
-      Math.pow(1 + settings.inflation, retirementTime);
+      Math.pow(1 + settings.inflation, timeFromStart) *
+      Math.pow(1 + settings.retirementCOLA, retirementTime);
     const socialSecurityIncome =
       age >= settings.socialSecurityStartAge
         ? settings.socialSecurityBenefit *
           Math.pow(1 + settings.inflation, timeFromStart)
         : 0;
-    const netSpendingNeed = Math.max(spendInflated - socialSecurityIncome, 0);
+    const spendNeedProrated = spendInflated * yearFraction;
+    const socialSecurityProrated = socialSecurityIncome * yearFraction;
+    const netSpendingNeed = Math.max(
+      spendNeedProrated - socialSecurityProrated,
+      0
+    );
     const grossWithdrawal = isRetired
-      ? (netSpendingNeed * yearFraction) / Math.max(1 - settings.taxRate, 0.0001)
+      ? netSpendingNeed / Math.max(1 - settings.taxRate, 0.0001)
       : 0;
-    const tax = isRetired ? grossWithdrawal - netSpendingNeed * yearFraction : 0;
+    const tax = isRetired ? grossWithdrawal - netSpendingNeed : 0;
 
     const contribution = isRetired
       ? 0
@@ -152,7 +157,7 @@ function calculateProjection(settings) {
       startBalance,
       contribution,
       withdrawal: grossWithdrawal,
-      socialSecurity: socialSecurityIncome * yearFraction,
+      socialSecurity: socialSecurityProrated,
       growth,
       tax,
       endBalance,
