@@ -118,7 +118,7 @@ function calculateProjection(settings) {
         ? settings.socialSecurityBenefit *
           Math.pow(1 + settings.inflation, timeFromStart)
         : 0;
-    const spendNeedProrated = spendInflated * yearFraction;
+    const spendNeedProrated = isRetired ? spendInflated * yearFraction : 0;
     const socialSecurityProrated = socialSecurityIncome * yearFraction;
     const netSpendingNeed = Math.max(
       spendNeedProrated - socialSecurityProrated,
@@ -156,6 +156,7 @@ function calculateProjection(settings) {
       year: new Date().getFullYear() + i,
       startBalance,
       contribution,
+      spendingNeed: spendNeedProrated,
       withdrawal: grossWithdrawal,
       socialSecurity: socialSecurityProrated,
       growth,
@@ -197,6 +198,7 @@ function buildTableRows(rows) {
           <td>${row.age}</td>
           <td>${currency.format(row.startBalance)}</td>
           <td>${currency.format(row.contribution)}</td>
+          <td>${currency.format(row.spendingNeed)}</td>
           <td>${currency.format(row.withdrawal)}</td>
           <td>${currency.format(row.socialSecurity)}</td>
           <td>${currency.format(row.growth)}</td>
