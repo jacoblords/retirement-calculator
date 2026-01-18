@@ -168,13 +168,15 @@ label {
   color: var(--muted);
 }
 
-label .label-head {
+label .label-head,
+th .label-head {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-label .info-tip {
+label .info-tip,
+th .info-tip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -189,7 +191,8 @@ label .info-tip {
   position: relative;
 }
 
-label .info-tip::after {
+label .info-tip::after,
+th .info-tip::after {
   content: attr(data-tooltip);
   position: absolute;
   left: 0;
@@ -211,7 +214,9 @@ label .info-tip::after {
 }
 
 label .info-tip:hover::after,
-label .info-tip:focus::after {
+label .info-tip:focus::after,
+th .info-tip:hover::after,
+th .info-tip:focus::after {
   opacity: 1;
   transform: translateY(0);
 }
@@ -326,6 +331,18 @@ td:nth-child(2) {
 
 tr:nth-child(even) {
   background: rgba(23, 109, 129, 0.05);
+}
+
+.delta {
+  font-variant-numeric: tabular-nums;
+}
+
+.delta.positive {
+  color: #1e7a4b;
+}
+
+.delta.negative {
+  color: #b23b34;
 }
 
 @media (max-width: 720px) {

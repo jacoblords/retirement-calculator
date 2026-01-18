@@ -137,18 +137,19 @@ function calculateProjection(settings) {
         yearFraction;
 
     const startBalance = balance;
-    const balanceAfterCashflow = startBalance + contribution - grossWithdrawal;
     const returnRate = isRetired ? settings.postReturn : settings.preReturn;
-    const endBalance =
-      balanceAfterCashflow * Math.pow(1 + returnRate, yearFraction);
-    const growth = endBalance - balanceAfterCashflow;
+    const balanceAfterWithdrawal = startBalance - grossWithdrawal;
+    const balanceAfterGrowth =
+      balanceAfterWithdrawal * Math.pow(1 + returnRate, yearFraction);
+    const endBalance = balanceAfterGrowth + contribution;
+    const growth = balanceAfterGrowth - balanceAfterWithdrawal;
     const realEndBalance = endBalance / inflationFactor;
 
     if (balanceAtRetirement === null && age === settings.retirementAge) {
       balanceAtRetirement = startBalance;
     }
 
-    if (isRetired && balanceAfterCashflow > 0) {
+    if (isRetired && balanceAfterGrowth > 0) {
       yearsFunded += 1;
     }
 
@@ -193,6 +194,10 @@ function calculateProjection(settings) {
 function buildTableRows(rows) {
   return rows
     .map((row) => {
+      const changeValue = row.growth;
+      const changeClass = changeValue >= 0 ? "delta positive" : "delta negative";
+      const changeDisplay =
+        `${changeValue >= 0 ? "+" : "-"}${currency.format(Math.abs(changeValue))}`;
       return `
         <tr>
           <td>${row.year}</td>
@@ -202,8 +207,8 @@ function buildTableRows(rows) {
           <td>${currency.format(row.spendingNeed)}</td>
           <td>${currency.format(row.withdrawal)}</td>
           <td>${currency.format(row.socialSecurity)}</td>
-          <td>${currency.format(row.growth)}</td>
           <td>${currency.format(row.tax)}</td>
+          <td class="${changeClass}">${changeDisplay}</td>
           <td>${currency.format(row.endBalance)}</td>
           <td>${currency.format(row.realEndBalance)}</td>
         </tr>
@@ -266,7 +271,7 @@ function buildCharts(result) {
             fill: true,
           },
           {
-            label: "Real balance",
+            label: "Balance (today $)",
             data: real,
             borderColor: "#d98324",
             backgroundColor: "rgba(217, 131, 36, 0.2)",
