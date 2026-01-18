@@ -26,6 +26,7 @@ body {
     radial-gradient(circle at 70% 20%, #e5f1ff 0%, transparent 40%),
     var(--bg);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .backdrop {
@@ -75,6 +76,7 @@ h1 {
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
   min-width: min(420px, 100%);
+  width: 100%;
 }
 
 .card-head {
@@ -133,7 +135,7 @@ h1 {
 
 .top-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 2rem;
   align-items: start;
 }
@@ -144,6 +146,7 @@ h1 {
   padding: 2rem;
   box-shadow: var(--shadow);
   backdrop-filter: blur(8px);
+  min-width: 0;
 }
 
 h2 {
@@ -154,7 +157,7 @@ h2 {
 .planner .input-grid {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
 label {
@@ -330,11 +333,50 @@ tr:nth-child(even) {
     padding: 2.5rem 6vw 1.5rem;
   }
 
+  .hero-card {
+    min-width: 100%;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    letter-spacing: 0.08rem;
+  }
+
+  .toggle-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .toggle-button {
+    flex: 1;
+    text-align: center;
+  }
+
   .panel {
     padding: 1.5rem;
   }
 
   .top-grid {
     grid-template-columns: 1fr;
+  }
+
+  .planner .input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .table-head button {
+    width: 100%;
+  }
+
+  table {
+    font-size: 0.85rem;
   }
 }
