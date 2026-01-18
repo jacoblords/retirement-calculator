@@ -121,10 +121,12 @@ h1 {
   display: block;
   color: var(--muted);
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .metric strong {
   font-size: 1.6rem;
+  white-space: nowrap;
 }
 
 .grid {

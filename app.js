@@ -140,16 +140,19 @@ function calculateProjection(settings) {
     const returnRate = isRetired ? settings.postReturn : settings.preReturn;
     const balanceAfterWithdrawal = startBalance - grossWithdrawal;
     const balanceAfterGrowth =
-      balanceAfterWithdrawal * Math.pow(1 + returnRate, yearFraction);
+      balanceAfterWithdrawal > 0
+        ? balanceAfterWithdrawal * Math.pow(1 + returnRate, yearFraction)
+        : balanceAfterWithdrawal;
     const endBalance = balanceAfterGrowth + contribution;
-    const growth = balanceAfterGrowth - balanceAfterWithdrawal;
+    const growth =
+      balanceAfterWithdrawal > 0 ? balanceAfterGrowth - balanceAfterWithdrawal : 0;
     const realEndBalance = endBalance / inflationFactor;
 
     if (balanceAtRetirement === null && age === settings.retirementAge) {
       balanceAtRetirement = startBalance;
     }
 
-    if (isRetired && balanceAfterGrowth > 0) {
+    if (isRetired && endBalance > 0) {
       yearsFunded += 1;
     }
 
