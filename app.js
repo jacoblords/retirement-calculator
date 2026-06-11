@@ -87,113 +87,6 @@ function getInputs() {
   };
 }
 
-function calculateProjection(settings) {
-  const years = settings.lifeExpectancy - settings.currentAge + 1;
-  const data = [];
-  let balance = settings.currentSavings;
-  let yearsFunded = 0;
-  let balanceAtRetirement = null;
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const startOfNextYear = new Date(now.getFullYear() + 1, 0, 1);
-  const dayOfYear = Math.floor((now - startOfYear) / 86400000) + 1;
-  const daysInYear = Math.floor((startOfNextYear - startOfYear) / 86400000);
-  const firstYearFraction = (daysInYear - (dayOfYear - 1)) / daysInYear;
-
-  for (let i = 0; i < years; i += 1) {
-    const age = settings.currentAge + i;
-    const yearIndex = i;
-    const isRetired = age >= settings.retirementAge;
-    const yearFraction = i === 0 ? firstYearFraction : 1;
-    const timeFromStart = i === 0 ? firstYearFraction : i;
-    const inflationFactor = Math.pow(1 + settings.inflation, timeFromStart);
-    const yearsSinceRetirement = Math.max(0, age - settings.retirementAge);
-    const retirementTime =
-      isRetired && i === 0 ? yearsSinceRetirement + yearFraction : yearsSinceRetirement;
-    const spendInflated =
-      settings.retirementSpend *
-      Math.pow(1 + settings.inflation, timeFromStart) *
-      Math.pow(1 + settings.retirementCOLA, retirementTime);
-    const socialSecurityIncome =
-      age >= settings.socialSecurityStartAge
-        ? settings.socialSecurityBenefit *
-          Math.pow(1 + settings.inflation, timeFromStart)
-        : 0;
-    const spendNeedProrated = isRetired ? spendInflated * yearFraction : 0;
-    const socialSecurityProrated = socialSecurityIncome * yearFraction;
-    const netSpendingNeed = Math.max(
-      spendNeedProrated - socialSecurityProrated,
-      0
-    );
-    const grossWithdrawal = isRetired
-      ? netSpendingNeed / Math.max(1 - settings.taxRate, 0.0001)
-      : 0;
-    const tax = isRetired ? grossWithdrawal - netSpendingNeed : 0;
-
-    const contribution = isRetired
-      ? 0
-      : settings.annualContribution *
-        Math.pow(1 + settings.contributionGrowth, yearIndex) *
-        yearFraction;
-
-    const startBalance = balance;
-    const returnRate = isRetired ? settings.postReturn : settings.preReturn;
-    const balanceAfterWithdrawal = startBalance - grossWithdrawal;
-    const balanceAfterGrowth =
-      balanceAfterWithdrawal > 0
-        ? balanceAfterWithdrawal * Math.pow(1 + returnRate, yearFraction)
-        : balanceAfterWithdrawal;
-    const endBalance = balanceAfterGrowth + contribution;
-    const growth =
-      balanceAfterWithdrawal > 0 ? balanceAfterGrowth - balanceAfterWithdrawal : 0;
-    const realEndBalance = endBalance / inflationFactor;
-
-    if (balanceAtRetirement === null && age === settings.retirementAge) {
-      balanceAtRetirement = startBalance;
-    }
-
-    if (isRetired && endBalance > 0) {
-      yearsFunded += 1;
-    }
-
-    data.push({
-      age,
-      year: new Date().getFullYear() + i,
-      startBalance,
-      contribution,
-      spendingNeed: spendNeedProrated,
-      withdrawal: grossWithdrawal,
-      socialSecurity: socialSecurityProrated,
-      growth,
-      tax,
-      endBalance,
-      realEndBalance,
-      isRetired,
-    });
-
-    balance = endBalance;
-  }
-
-  return {
-    data,
-    balanceAtRetirement: balanceAtRetirement ?? settings.currentSavings,
-    realBalanceAtRetirement:
-      (balanceAtRetirement ?? settings.currentSavings) /
-      Math.pow(
-        1 + settings.inflation,
-        Math.max(0, settings.retirementAge - settings.currentAge)
-      ),
-    yearsFunded,
-    endingBalance: balance,
-    realEndingBalance:
-      balance /
-      Math.pow(
-        1 + settings.inflation,
-        Math.max(0, settings.lifeExpectancy - settings.currentAge)
-      ),
-  };
-}
-
 function buildTableRows(rows) {
   return rows
     .map((row) => {
@@ -250,152 +143,103 @@ function renderSummary(result) {
     : "Ending balance";
 }
 
+function chartOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        bottom: 16,
+      },
+    },
+    animation: {
+      duration: 850,
+      easing: "easeOutQuart",
+    },
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 16,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) =>
+            `${context.dataset.label}: ${currency.format(context.parsed.y)}`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => currency.format(value),
+        },
+      },
+    },
+  };
+}
+
+function upsertChart(chart, canvasId, type, labels, datasets) {
+  if (!chart) {
+    return new Chart(document.getElementById(canvasId), {
+      type,
+      data: { labels, datasets },
+      options: chartOptions(),
+    });
+  }
+
+  chart.data.labels = labels;
+  datasets.forEach((dataset, i) => {
+    chart.data.datasets[i].data = dataset.data;
+  });
+  chart.update();
+  return chart;
+}
+
 function buildCharts(result) {
   const labels = result.data.map((row) => row.age);
-  const nominal = result.data.map((row) => row.endBalance);
-  const real = result.data.map((row) => row.realEndBalance);
-  const contributions = result.data.map((row) => row.contribution);
-  const withdrawals = result.data.map((row) => -row.withdrawal);
-  const socialSecurity = result.data.map((row) => row.socialSecurity);
 
-  if (!balanceChart) {
-    const ctx = document.getElementById("balanceChart");
-    balanceChart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Nominal balance",
-            data: nominal,
-            borderColor: "#1b6ca8",
-            backgroundColor: "rgba(27, 108, 168, 0.2)",
-            tension: 0.35,
-            fill: true,
-          },
-          {
-            label: "Balance (today $)",
-            data: real,
-            borderColor: "#d98324",
-            backgroundColor: "rgba(217, 131, 36, 0.2)",
-            tension: 0.35,
-            fill: true,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: {
-            bottom: 16,
-          },
-        },
-        animation: {
-          duration: 850,
-          easing: "easeOutQuart",
-        },
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              padding: 16,
-            },
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) =>
-                `${context.dataset.label}: ${currency.format(context.parsed.y)}`,
-            },
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: (value) => currency.format(value),
-            },
-          },
-        },
-      },
-    });
-  } else {
-    balanceChart.data.labels = labels;
-    balanceChart.data.datasets[0].data = nominal;
-    balanceChart.data.datasets[1].data = real;
-    balanceChart.update();
-  }
+  balanceChart = upsertChart(balanceChart, "balanceChart", "line", labels, [
+    {
+      label: "Nominal balance",
+      data: result.data.map((row) => row.endBalance),
+      borderColor: "#1b6ca8",
+      backgroundColor: "rgba(27, 108, 168, 0.2)",
+      tension: 0.35,
+      fill: true,
+    },
+    {
+      label: "Balance (today $)",
+      data: result.data.map((row) => row.realEndBalance),
+      borderColor: "#d98324",
+      backgroundColor: "rgba(217, 131, 36, 0.2)",
+      tension: 0.35,
+      fill: true,
+    },
+  ]);
 
-  if (!cashflowChart) {
-    const ctx = document.getElementById("cashflowChart");
-    cashflowChart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Contributions",
-            data: contributions,
-            backgroundColor: "rgba(0, 126, 105, 0.6)",
-            borderRadius: 8,
-          },
-          {
-            label: "Withdrawals",
-            data: withdrawals,
-            backgroundColor: "rgba(213, 94, 0, 0.7)",
-            borderRadius: 8,
-          },
-          {
-            label: "Social Security",
-            data: socialSecurity,
-            backgroundColor: "rgba(86, 180, 233, 0.65)",
-            borderRadius: 8,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: {
-            bottom: 16,
-          },
-        },
-        animation: {
-          duration: 850,
-          easing: "easeOutQuart",
-        },
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              padding: 16,
-            },
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) =>
-                `${context.dataset.label}: ${currency.format(context.parsed.y)}`,
-            },
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: (value) => currency.format(value),
-            },
-          },
-        },
-      },
-    });
-  } else {
-    cashflowChart.data.labels = labels;
-    cashflowChart.data.datasets[0].data = contributions;
-    cashflowChart.data.datasets[1].data = withdrawals;
-    cashflowChart.data.datasets[2].data = socialSecurity;
-    cashflowChart.update();
-  }
+  cashflowChart = upsertChart(cashflowChart, "cashflowChart", "bar", labels, [
+    {
+      label: "Contributions",
+      data: result.data.map((row) => row.contribution),
+      backgroundColor: "rgba(0, 126, 105, 0.6)",
+      borderRadius: 8,
+    },
+    {
+      label: "Withdrawals",
+      data: result.data.map((row) => -row.withdrawal),
+      backgroundColor: "rgba(213, 94, 0, 0.7)",
+      borderRadius: 8,
+    },
+    {
+      label: "Social Security",
+      data: result.data.map((row) => row.socialSecurity),
+      backgroundColor: "rgba(86, 180, 233, 0.65)",
+      borderRadius: 8,
+    },
+  ]);
 }
 
 function render() {
@@ -404,7 +248,8 @@ function render() {
   if (
     settings.currentAge === null ||
     settings.retirementAge === null ||
-    settings.lifeExpectancy === null
+    settings.lifeExpectancy === null ||
+    settings.lifeExpectancy < settings.currentAge
   ) {
     return;
   }
@@ -465,7 +310,26 @@ function loadTableState() {
   showAllRows = stored === "true";
 }
 
-function clampOnBlur() {
+function clampInputToRange(id) {
+  const el = elements[id];
+  const value = toNumberNullable(el.value);
+  if (value === null) {
+    return;
+  }
+
+  const min = el.getAttribute("min");
+  const max = el.getAttribute("max");
+  const clamped = clampToRange(
+    value,
+    min === null ? null : Number(min),
+    max === null ? null : Number(max)
+  );
+  if (clamped !== value) {
+    el.value = String(clamped);
+  }
+}
+
+function applyAgeClamps() {
   const settings = getInputs();
 
   if (
@@ -476,42 +340,46 @@ function clampOnBlur() {
     return;
   }
 
-  if (settings.retirementAge <= settings.currentAge) {
-    elements.retirementAge.value = String(settings.currentAge + 1);
+  const clamped = clampAgeRelationships({
+    currentAge: settings.currentAge,
+    retirementAge: settings.retirementAge,
+    lifeExpectancy: settings.lifeExpectancy,
+    socialSecurityStartAge: settings.socialSecurityStartAge,
+  });
+
+  if (clamped.retirementAge !== settings.retirementAge) {
+    elements.retirementAge.value = String(clamped.retirementAge);
   }
-
-  if (settings.lifeExpectancy <= settings.retirementAge) {
-    elements.lifeExpectancy.value = String(settings.retirementAge + 1);
+  if (clamped.lifeExpectancy !== settings.lifeExpectancy) {
+    elements.lifeExpectancy.value = String(clamped.lifeExpectancy);
   }
-
-  if (settings.socialSecurityStartAge !== null) {
-    if (settings.socialSecurityStartAge < settings.currentAge) {
-      elements.socialSecurityStartAge.value = String(settings.currentAge);
-    }
-
-    if (settings.socialSecurityStartAge > settings.lifeExpectancy) {
-      elements.socialSecurityStartAge.value = String(settings.lifeExpectancy);
-    }
+  if (clamped.socialSecurityStartAge !== settings.socialSecurityStartAge) {
+    elements.socialSecurityStartAge.value = String(
+      clamped.socialSecurityStartAge
+    );
   }
 }
+
+const ageFields = new Set([
+  "currentAge",
+  "retirementAge",
+  "lifeExpectancy",
+  "socialSecurityStartAge",
+]);
 
 inputIds.forEach((id) => {
   elements[id].addEventListener("input", () => {
     saveInputs();
     render();
   });
-  if (
-    id === "currentAge" ||
-    id === "retirementAge" ||
-    id === "lifeExpectancy" ||
-    id === "socialSecurityStartAge"
-  ) {
-    elements[id].addEventListener("blur", () => {
-      clampOnBlur();
-      saveInputs();
-      render();
-    });
-  }
+  elements[id].addEventListener("blur", () => {
+    clampInputToRange(id);
+    if (ageFields.has(id)) {
+      applyAgeClamps();
+    }
+    saveInputs();
+    render();
+  });
 });
 
 toggleTable.addEventListener("click", () => {

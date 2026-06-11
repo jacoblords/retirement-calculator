@@ -3,9 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
     <title>Retirement Pathfinder</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"
+      integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG"
+      crossorigin="anonymous"
+    ></script>
   </head>
   <body>
     <div class="backdrop"></div>
@@ -71,15 +79,15 @@
           <div class="input-grid">
             <label>
               Current savings ($)
-              <input type="text" inputmode="decimal" id="currentSavings" value="120000" min="0" step="1000" />
+              <input type="text" inputmode="decimal" id="currentSavings" value="120000" min="0" />
             </label>
             <label>
               Annual contribution ($)
-              <input type="text" inputmode="decimal" id="annualContribution" value="18000" min="0" step="500" />
+              <input type="text" inputmode="decimal" id="annualContribution" value="18000" min="0" />
             </label>
             <label>
               Contribution growth (%/yr)
-              <input type="text" inputmode="decimal" id="contributionGrowth" value="2" min="0" max="15" step="0.1" />
+              <input type="text" inputmode="decimal" id="contributionGrowth" value="2" min="0" max="15" />
             </label>
           </div>
         </div>
@@ -88,15 +96,15 @@
           <div class="input-grid">
             <label>
               Pre-retirement return (%/yr)
-              <input type="text" inputmode="decimal" id="preReturn" value="6.5" min="0" max="15" step="0.1" />
+              <input type="text" inputmode="decimal" id="preReturn" value="6.5" min="0" max="15" />
             </label>
             <label>
               Post-retirement return (%/yr)
-              <input type="text" inputmode="decimal" id="postReturn" value="4.5" min="-2" max="12" step="0.1" />
+              <input type="text" inputmode="decimal" id="postReturn" value="4.5" min="-2" max="12" />
             </label>
             <label>
               Inflation (%/yr)
-              <input type="text" inputmode="decimal" id="inflation" value="2.4" min="0" max="10" step="0.1" />
+              <input type="text" inputmode="decimal" id="inflation" value="2.4" min="0" max="10" />
             </label>
           </div>
         </div>
@@ -105,17 +113,18 @@
           <div class="input-grid">
             <label>
               Tax rate on withdrawals (%)
-              <input type="text" inputmode="decimal" id="taxRate" value="18" min="0" max="50" step="0.1" />
+              <input type="text" inputmode="decimal" id="taxRate" value="18" min="0" max="50" />
             </label>
             <label>
               Retirement spending (today $)
-              <input type="text" inputmode="decimal" id="retirementSpend" value="52000" min="0" step="500" />
+              <input type="text" inputmode="decimal" id="retirementSpend" value="52000" min="0" />
             </label>
             <label>
               <span class="label-head">
                 Retirement spending change (%/yr)
                 <span
                   class="info-tip"
+                  tabindex="0"
                   data-tooltip="Adjusts retirement spending each year before inflation. Many retirees spend less over time. Use 0% to keep spending flat in today’s dollars, or a negative value to model spending less. See reference note below."
                   aria-label="About retirement spending change"
                   role="note"
@@ -130,7 +139,6 @@
                 value="-1"
                 min="-5"
                 max="10"
-                step="0.1"
               />
             </label>
           </div>
@@ -139,12 +147,23 @@
           <h3>Social Security</h3>
           <div class="input-grid">
             <label>
-              Start age
+              <span class="label-head">
+                Start age
+                <span
+                  class="info-tip"
+                  tabindex="0"
+                  data-tooltip="Benefits are modeled only during retirement. A start age earlier than your retirement age begins paying at retirement instead."
+                  aria-label="About Social Security start age"
+                  role="note"
+                >
+                  i
+                </span>
+              </span>
               <input type="text" inputmode="decimal" id="socialSecurityStartAge" value="67" min="62" max="85" />
             </label>
             <label>
               Annual benefit (today $)
-              <input type="text" inputmode="decimal" id="socialSecurityBenefit" value="24000" min="0" step="500" />
+              <input type="text" inputmode="decimal" id="socialSecurityBenefit" value="24000" min="0" />
             </label>
           </div>
         </div>
@@ -182,6 +201,7 @@
                     Contribution
                     <span
                       class="info-tip"
+                      tabindex="0"
                       data-tooltip="Contributions are added at the end of each year for the growth calculation."
                       aria-label="About contributions"
                       role="note"
@@ -199,6 +219,7 @@
                     Growth
                     <span
                       class="info-tip"
+                      tabindex="0"
                       data-tooltip="Growth is the investment return earned on your starting balance after withdrawals are taken."
                       aria-label="About growth"
                       role="note"
@@ -226,6 +247,8 @@
       </section>
     </main>
 
+    <script src="projection.js"></script>
+    <script src="clamp.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -223,6 +223,12 @@ th .info-tip:focus::after {
   transform: translateY(0);
 }
 
+label .info-tip:focus-visible,
+th .info-tip:focus-visible {
+  outline: 2px solid var(--sea);
+  outline-offset: 2px;
+}
+
 input {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 14px;
